@@ -50,6 +50,7 @@ class PostDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         context['user_name'] = self.kwargs['user_name']
         context['comment_form'] = CommentForm()
+        context['root_comments'] = Comment.objects.filter(post=self.object, parent_comment=None)
         return context
     
     def get_object(self, queryset=None):

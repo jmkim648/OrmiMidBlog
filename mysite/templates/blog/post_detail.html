@@ -20,10 +20,19 @@
 
 <section>
     <h3>댓글</h3>
-    {% for comment in post.comments.all %}
-        <p>{{comment.message}}</p>
-        <p>{{comment.author}}</p>
-        <p>{{comment.updated_at}}</p>
+
+    {% for comment in root_comments %}
+        <hr>
+        <p>{{ comment.message }}</p>
+        <p>작성자: {{ comment.author }}</p>
+        <p>작성일: {{ comment.updated_at }}</p>
+        {% for reply in comment.replies.all %}
+            <hr>
+            <p>원댓글: {{ reply.parent_comment }}</p>
+            <p>{{ reply.message }}</p>
+            <p>작성자: {{ reply.author }}</p>
+            <p>작성일: {{ reply.updated_at }}</p>
+        {% endfor %}
     {% endfor %}
 </section>
 

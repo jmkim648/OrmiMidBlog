@@ -6,14 +6,19 @@ from .forms import PostForm, CommentForm
 from django.urls import reverse_lazy
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
+from accounts.models import User
 
 class PostListView(ListView):
     model = Post
 
     def get_queryset(self):
+        user_name = self.kwargs['user_name']
+        user = User.objects.get(username=user_name)
         qs = super().get_queryset()
         q = self.request.GET.get('q', '')
         tag = self.request.GET.get('tag','')
+
+        qs = qs.filter(author=user)
         if q:
             qs = qs.filter(title__icontains=q)
         elif tag:
@@ -23,6 +28,7 @@ class PostListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['tags'] = Tag.objects.all()
+        context['user_name'] = self.kwargs['user_name']
         return context
 
 class PostCreateView(LoginRequiredMixin, CreateView):
@@ -42,30 +48,27 @@ class PostDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['user_name'] = self.kwargs['user_name']
         context['comment_form'] = CommentForm()
         return context
     
     def get_object(self, queryset=None):
-        '''
-        PostDetailView.as_view()에서 사용할 object를 반환하는 함수
-        여기서 원하는 쿼리셋이나 object를 추가한 후 템플릿으로 전달 가능
-        수정한 후 전달도 가능
-        '''
         pk = self.kwargs.get('pk')
-        post = Post.objects.get(pk=pk)
+        user_name = self.kwargs['user_name']
+        user = User.objects.get(username=user_name)
+        post = Post.objects.get(author=user, pk=pk)
         post.view_count += 1
         post.save()
         return super().get_object(queryset)
 
 
-#UserPassesTestMixin를 쓰면 test_func으로 테스트 가능 (유닛 테스트 그런게 아니라 여기 접근할 수 있는 자격을 test하는 느낌?)
 class PostUpdateView(UserPassesTestMixin, UpdateView):  
     model = Post
     form_class = PostForm
     success_url = reverse_lazy('blog:post_list')
     template_name = 'blog/blog_form.html'
 
-    def test_func(self): #UserPassesTestMixin에 있고 test_func() 메서드를 오버라이딩. True, False값으로 접근 제한 가능
+    def test_func(self):
         return self.get_object().author == self.request.user
 
 
@@ -101,7 +104,7 @@ def comment_new(request, pk):
     })
 
 @login_required
-def comment_delete(request, pk):
+def comment_delete(request, pk, cpk):
     post = Post.objects.get(pk=pk)
     if request.method == 'POST':
         form = CommentForm(request.POST)

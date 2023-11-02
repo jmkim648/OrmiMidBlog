@@ -1,0 +1,24 @@
+<h1>Post List</h1>
+<form action="" method="GET">
+    <input type="text" name="q" value="{{ request.GET.q }}">
+    <input type="submit" value="검색">
+</form>
+
+<p> 태그 목록 </p>
+{% for tag in tags %}
+    <a href="{% url 'blog:post_list' %}?tag={{ tag.name }}">{{tag.name}}</a>
+{% endfor %}
+
+<ul>
+    {% for post in post_list %}
+    <li>
+        <a href="{% url 'blog:post_detail' user_name post.pk %}">
+            {% if post.thumbnail_img %}
+                <img src="{{ post.thumb_image.url }}" style="width: 500px" alt="">
+            {% endif %}
+            {{ post.title }}
+        </a>
+    </li>
+    {% endfor %}
+</ul>
+<a href="{% url 'blog:post_new' user_name %}">업로드</a>

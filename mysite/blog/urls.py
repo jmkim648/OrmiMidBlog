@@ -2,8 +2,6 @@ from django.urls import path
 from . import views
 
 app_name = 'blog'
-# {% url 'tube:post_list' %} 
-# {% url 'tube:post_detail' post.pk %} 가능
 
 urlpatterns = [
     path('<str:user_name>/', views.post_list, name='post_list'),

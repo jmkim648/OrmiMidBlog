@@ -3,7 +3,7 @@ from django.db.models import Q
 
 
 def index(request):
-  return render(request, 'index.html')
+  return render(request, 'main/index.html')
 
 def search(request):
   content_list = Content.objects.all()
